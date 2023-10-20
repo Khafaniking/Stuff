@@ -2,12 +2,12 @@ import socket
 import random #need this for generating our messages, so our passengers
 
 #Server 1 - Our airport ANC
-anc_ip = '192.168.1.11'
+anc_ip = 'xxx.xxx.xxx.xxx'
 anc_port = 9000 
 
 #server 2, our SEA airport
 
-sea_ip = '192.168.1.11'
+sea_ip = 'xxx.xxx.xxx.xxx'
 sea_port = 9001
 
 address = {
