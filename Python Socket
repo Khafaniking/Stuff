@@ -1,0 +1,217 @@
+import socket
+import random #need this for generating our messages, so our passengers
+
+#Server 1 - Our airport ANC
+anc_ip = 'xxx.xxx.xxx.xxx'
+anc_port = 9000 
+
+#server 2, our SEA airport
+
+sea_ip = 'xxx.xxx.xxx.xxx'
+sea_port = 9001
+
+address = {
+    "ANC": anc_ip,
+    "SEA": sea_ip
+    }
+
+port = {
+    "ANC": anc_port,
+    "SEA": sea_port
+    }
+#create our sockets for our servers
+
+server_socket_1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket_2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+#bind each server socket to its respective IP address and port
+server_socket_1.bind((anc_ip, anc_port))
+server_socket_2.bind((sea_ip, sea_port))
+
+#set up listening range/queue 
+server_socket_1.listen(7)
+server_socket_2.listen(7)
+
+#test our servers' connections
+def test_server_connection(server_name, address, port):
+    s = socket.socket()
+    try:
+        s.connect((address, port))
+        print(f"Connection to {server_name} at {address}:{port} is successful.")
+        print(f"{server_name} airport is ready to route and receive passengers.")
+    except Exception as e:
+        print(f"Failed to connect to {server_name} at {address}:{port}. Exception: {str(e)}")
+    finally:
+        s.close()
+
+servers = ["ANC", "SEA"]
+
+for server_name in servers:
+        test_server_connection(server_name, address[server_name], port[server_name])
+
+
+#print(f"ANC is ready to route and receive passengers")
+#print(f"SEA is ready to route and receive passengers")
+
+#client nodes
+client_socket_FAI_to_ANC = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #fairbanks route 1
+client_socket_FAI_to_SEA = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #fairbanks route 2
+client_socket_BRW = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #barrow minor hub  
+client_socket_OTZ = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #random place hub
+
+#connect our fairbanks hub to anc and sea, as it can route to sea directly, or stop in anc first
+client_socket_FAI_to_ANC.connect((anc_ip, anc_port))
+client_socket_FAI_to_SEA.connect((sea_ip, sea_port))
+
+#connect brw and otz to anc only
+client_socket_BRW.connect((anc_ip, anc_port))
+client_socket_OTZ.connect((anc_ip, anc_port))
+
+#test our client connection
+
+client_address = {
+    "FAI_to_ANC": (anc_ip),
+    "FAI_to_SEA": (sea_ip),
+    "BRW": (anc_ip),
+    "OTZ": (anc_ip)
+    }
+client_port = {
+    "FAI_to_ANC": (anc_port),
+    "FAI_to_SEA": (sea_port),
+    "BRW": (anc_port),
+    "OTZ": (anc_port)
+    }
+
+def test_client_connection(client_name, client_address, client_port) :
+    s = socket.socket()
+    try:
+        s.connect((client_address, client_port))
+        print(f"Connection to {client_name} at {client_address}:{client_port} is successful.")
+        print(f"{client_name} is an operational route.")
+    except Exception as e:
+        print(f"Failed to connect to {client_name} at {client_address}:{client_port}. Exception: {str(e)}")
+
+clients = ["FAI_to_ANC", "FAI_to_SEA", "BRW", "OTZ"]
+
+for client_name in clients:
+    client_addr = client_address[client_name]
+    client_prt = client_port[client_name]
+    test_client_connection(client_name, client_addr, client_prt)
+
+
+#print(f"FAI is ready to route and receive passengers")
+#print(f"BRW is ready to route and receive passengers")
+#print(f"OTZ is ready to route and receive passengers")
+
+#list of first and last names for us to randomly generate names for our passengers
+first_names = ["Anton", "Aaliyah", "Blake", "Barbara", "Chiron", "Cindy", "Daud", "Denise", "Edward",
+               "Ethel", "Frank", "Francine", "Gale", "Gisela", "Huron", "Hailey", "Idris", "Indigo",
+              "James", "Jane", "Kendrick", "Kyona", "Lin", "Larissa", "Mahershala", "Marisha", "Niel",
+              "Nia", "Orion", "Oba", "Pietro", "Persephone", "Quentin", "Quincy", "Ronald", "Reese",
+              "Steve", "Sarah", "Titus", "Trisha", "Umberto", "Ullani", "Victor", "Vanessa",
+              "Winston", "Winona", "Xavier", "Xiomara", "Yusef", "Yi", "Zeke", "Zoe"] 
+last_names = ["Alexander", "Alderman", "Brooks", "Brinkman", "Curry", "Corazon", "D'Orio",
+              "Davis", "Emmons", "Ebeid", "Faheem", "Fatima", "Grant", "Garcia", 
+              "Habib", "Harding", "Ivey", "Ivarson", "Jackson", "Jackman", "Lloyd", "Lopez",
+              "Morales", "Moore", "Nguyen", "Nomura", "Ogawa", "O'Hara", "Pahlavi", "Pejman",
+              "Quinones", "Quezada", "Rio", "Reed", "Stevens", "Singh", "Taylor", "Thomas", 
+             "Ulrich", "Urban", "Vahn", "Veloso", "Workman", "Wallace", "Xander", "Xiang", "Yang",
+             "Yeager", "Zhao", "Zamora"] #whoof
+
+num_passengers = 25 #starting sample size of passengers 
+passenger_messages = []
+
+airports = ["ANC", "SEA", "FAI", "BRW", "OTZ"]
+
+for _ in range(num_passengers):
+    origin = random.choice(airports) 
+    destination = random.choice(airports)
+    while destination == origin:
+        destination = random.choice(airports)
+
+    first_name = random.choice(first_names)
+    last_name = random.choice(last_names)
+
+    passenger_info = f"{first_name} {last_name}"
+
+    message = {
+        "Passenger Info": passenger_info,
+        "Origin": origin,
+        "Destination": destination,
+        }
+    passenger_messages.append(message)
+
+print("These are our passengers traveling today")
+
+for message in passenger_messages:
+    print(message)
+
+#now that we've created our server and client sockets, tested them, and then generated our list
+#of passengers, we can then split these passengers up into the different nodes based on their
+#respective origins
+
+server_sockets = {
+    "ANC": server_socket_1,
+    "SEA": server_socket_2,
+    }
+client_sockets = {
+    "FAI": client_socket_FAI_to_ANC,
+    "BRW": client_socket_BRW,
+    "OTZ": client_socket_OTZ,
+    }
+
+#the def that we'll use to strip through our batch of generated passenger messages and look for
+#their origin, and allocate them there
+
+def allocate_passengers_to_sockets(passenger_messages, airports, server_sockets, client_sockets):
+    allocated_passengers = {airport: {"Server": None, "Client": None, "Passengers": []} for airport in airports}
+
+    for passenger_message in passenger_messages:
+        origin = passenger_message['Origin']
+        for airport, socket in server_sockets.items():
+            if origin == airport:
+                allocated_passengers[origin]["Server"] = socket
+                allocated_passengers[origin]["Passengers"].append(passenger_message)
+                break
+        if allocated_passengers[origin]["Server"] is None:
+            for airport, socket in client_sockets.items():
+                if origin == airport:
+                    allocated_passengers[origin]["Client"] = socket
+                    allocated_passengers[origin]["Passengers"].append(passenger_message)
+                    break
+
+    return allocated_passengers
+
+allocated_passengers = allocate_passengers_to_sockets(passenger_messages, airports, server_sockets, client_sockets)
+#printed batches of passengers at their respective origins
+for airport, data in allocated_passengers.items():
+    passengers = data["Passengers"]
+    if passengers: 
+        print(f"\n{airport} has passengers:\n")
+        for passenger in passengers:
+            passenger_info = passenger['Passenger Info']
+            destination = passenger['Destination']
+            print(f"{passenger_info}, Destination {destination}")
+
+#routing step of the code
+#might be easiest for me to follow by just having a series of incremental defs, to better trace
+#where this win error is coming from, and have these defs route passengers from 
+#client nodes to server node, then server node to server node
+#we'll start with OTZ to ANC, then BRW to ANC, then FAI to ANC, as three rounds
+#of passenger movements. then FAI to ANC, then FAI to SEA as two more rounds, 
+# then a series of final rounds as we split passengers at anc to their 
+#respective final destintions
+
+def route_OTZ_to_ANC(allocated_passengers, server_sockets):
+    otz_passengers = allocated_passengers["OTZ"]["Passengers"]
+    anc_server_socket = server_sockets["ANC"]
+    
+    for passenger_message in otz_passengers:
+        passenger_info = passenger_message["Passenger Info"]
+        destination = passenger_message["Destination"]
+        
+        message = f"Passenger {passenger_info} is flying from OTZ to ANC and heading to {destination}"
+        anc_server_socket.send(message.encode())
+        print(message)
+
+route_OTZ_to_ANC(allocated_passengers, server_sockets)
