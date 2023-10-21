@@ -67,6 +67,37 @@ client_socket_FAI_to_SEA.connect((sea_ip, sea_port))
 client_socket_BRW.connect((anc_ip, anc_port))
 client_socket_OTZ.connect((anc_ip, anc_port))
 
+#accept incoming connections
+client_socket_FAI_to_ANC, _ = server_socket_1.accept()
+client_socket_FAI_to_SEA, _ = server_socket_2.accept()
+client_socket_BRW, _ = server_socket_1.accept()
+client_socket_OTZ, _ = server_socket_1.accept()
+
+
+#create receive sockets for each client
+# Data for each client
+data_FAI_to_ANC = "Data for FAI to ANC"
+data_FAI_to_SEA = "Data for FAI to SEA"
+data_BRW = "Data for BRW"
+data_OTZ = "Data for OTZ"
+
+# Encode and send data for each client
+data_FAI_to_ANC_encoded = data_FAI_to_ANC.encode('utf-8')
+data_FAI_to_SEA_encoded = data_FAI_to_SEA.encode('utf-8')
+data_BRW_encoded = data_BRW.encode('utf-8')
+data_OTZ_encoded = data_OTZ.encode('utf-8')
+
+client_socket_FAI_to_ANC.send(data_FAI_to_ANC_encoded)
+client_socket_FAI_to_SEA.send(data_FAI_to_SEA_encoded)
+client_socket_BRW.send(data_BRW_encoded)
+client_socket_OTZ.send(data_OTZ_encoded)
+
+# Receive data for each client
+received_data_FAI_to_ANC = client_socket_FAI_to_ANC.recv(1024)
+received_data_FAI_to_SEA = client_socket_FAI_to_SEA.recv(1024)
+received_data_BRW = client_socket_BRW.recv(1024)
+received_data_OTZ = client_socket_OTZ.recv(1024)
+
 #test our client connection
 
 client_address = {
